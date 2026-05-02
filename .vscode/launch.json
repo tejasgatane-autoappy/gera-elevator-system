@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run Gera Elevator Backend",
+      "request": "launch",
+      "mainClass": "com.gera.elevator.ElevatorApplication",
+      "projectName": "gera-elevator-system",
+      "env": {
+        "REDIS_HOST": "localhost",
+        "REDIS_PORT": "6379"
+      }
+    },
+    {
+      "type": "java",
+      "name": "Run Backend With Memory Store",
+      "request": "launch",
+      "mainClass": "com.gera.elevator.ElevatorApplication",
+      "projectName": "gera-elevator-system",
+      "args": "--elevator.system.state-store=memory"
+    }
+  ]
+}

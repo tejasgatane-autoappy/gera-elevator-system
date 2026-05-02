@@ -1,0 +1,48 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gera-elevator-system
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      timeout: 2s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+elevator:
+  system:
+    floors: ${ELEVATOR_FLOORS:16}
+    elevator-ids:
+      - A
+      - B
+      - C
+      - D
+    seconds-per-floor: 30
+    door-open-seconds: 10
+    door-close-seconds: 10
+    max-stops-per-elevator: 64
+    state-store: ${ELEVATOR_STATE_STORE:redis}
+    lock-timeout-millis: 3000
+    redis:
+      state-key: gera:elevator:state:current
+      events-key: gera:elevator:events
+      lock-key: gera:elevator:lock:state
+      lock-ttl-millis: 5000
+      event-history-limit: 1000
+    cors:
+      allowed-origins:
+        - http://localhost:3000
+        - http://localhost:5173
+        - http://127.0.0.1:3000
+        - http://127.0.0.1:5173
