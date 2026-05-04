@@ -209,19 +209,21 @@ public class ElevatorService {
         Instant now = clock.instant();
         elevator.setStops(decision.updatedStops());
         elevator.setDirection(decision.updatedDirection());
-        elevator.setDoorStatus(doorStatusAfterAssignment(elevator.getCurrentFloor(), decision.updatedStops()));
+        // elevator.setDoorStatus(doorStatusAfterAssignment(elevator.getCurrentFloor(), decision.updatedStops()));
+        elevator.setDoorStatus(DoorStatus.CLOSED);
+        
         elevator.setUpdatedAt(now);
         updated.setVersion(nextVersion(state));
         updated.setUpdatedAt(now);
         return updated;
     }
 
-    private DoorStatus doorStatusAfterAssignment(int currentFloor, List<Integer> stops) {
-        if (!stops.isEmpty() && stops.getFirst() == currentFloor) {
-            return DoorStatus.OPENING;
-        }
-        return DoorStatus.CLOSED;
-    }
+    // private DoorStatus doorStatusAfterAssignment(int currentFloor, List<Integer> stops) {
+    //     if (!stops.isEmpty() && stops.getFirst() == currentFloor) {
+    //         return DoorStatus.OPENING;
+    //     }
+    //     return DoorStatus.CLOSED;
+    // }
 
     private void saveWithEvent(ElevatorSystemState state, String eventType, Map<String, Object> details) {
         stateStore.save(state);

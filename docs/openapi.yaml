@@ -1,0 +1,242 @@
+openapi: 3.0.3
+info:
+  title: Gera Elevator System API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /api/v1/elevators:
+    get:
+      summary: Get current elevator system state
+      responses:
+        "200":
+          description: Current state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevatorSystemResponse"
+  /api/v1/requests:
+    post:
+      summary: Submit an external or internal elevator request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ElevatorRequest"
+            examples:
+              external:
+                value:
+                  type: EXTERNAL
+                  floor: 4
+                  direction: UP
+              internal:
+                value:
+                  type: INTERNAL
+                  elevatorId: A
+                  destinationFloor: 9
+      responses:
+        "200":
+          description: Assignment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevatorAssignmentResponse"
+        "400":
+          description: Invalid request
+        "409":
+          description: Lift cannot accept another stop
+        "503":
+          description: State store unavailable
+  /api/v1/requests/external:
+    post:
+      summary: Submit a floor-panel request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExternalRequest"
+      responses:
+        "200":
+          description: Assignment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevatorAssignmentResponse"
+  /api/v1/elevators/{elevatorId}/requests:
+    post:
+      summary: Submit an inside-lift request
+      parameters:
+        - name: elevatorId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternalRequest"
+      responses:
+        "200":
+          description: Assignment result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevatorAssignmentResponse"
+  /api/v1/elevators/{elevatorId}/telemetry:
+    put:
+      summary: Update a lift from simulator or hardware telemetry
+      parameters:
+        - name: elevatorId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ElevatorTelemetryRequest"
+      responses:
+        "200":
+          description: Updated state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevatorSystemResponse"
+  /api/v1/events:
+    get:
+      summary: Get recent state events
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 50
+      responses:
+        "200":
+          description: Events newest first
+  /api/v1/admin/reset:
+    post:
+      summary: Reset the building to initial state
+      responses:
+        "200":
+          description: Reset state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ElevatorSystemResponse"
+components:
+  schemas:
+    Direction:
+      type: string
+      enum: [UP, DOWN, IDLE]
+    DoorStatus:
+      type: string
+      enum: [OPEN, CLOSED, OPENING, CLOSING]
+    ElevatorRequest:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [EXTERNAL, INTERNAL]
+        floor:
+          type: integer
+        direction:
+          $ref: "#/components/schemas/Direction"
+        elevatorId:
+          type: string
+        destinationFloor:
+          type: integer
+    ExternalRequest:
+      type: object
+      required: [floor, direction]
+      properties:
+        floor:
+          type: integer
+          minimum: 1
+        direction:
+          $ref: "#/components/schemas/Direction"
+    InternalRequest:
+      type: object
+      required: [destinationFloor]
+      properties:
+        destinationFloor:
+          type: integer
+          minimum: 1
+    ElevatorTelemetryRequest:
+      type: object
+      required: [currentFloor, direction, stops]
+      properties:
+        currentFloor:
+          type: integer
+          minimum: 1
+        direction:
+          $ref: "#/components/schemas/Direction"
+        stops:
+          type: array
+          items:
+            type: integer
+        doorStatus:
+          $ref: "#/components/schemas/DoorStatus"
+    ElevatorSystemResponse:
+      type: object
+      required: [totalFloors, version, updatedAt, elevators]
+      properties:
+        totalFloors:
+          type: integer
+        version:
+          type: integer
+          format: int64
+        updatedAt:
+          type: string
+          format: date-time
+        elevators:
+          type: array
+          items:
+            $ref: "#/components/schemas/ElevatorState"
+    ElevatorState:
+      type: object
+      properties:
+        id:
+          type: string
+        currentFloor:
+          type: integer
+        direction:
+          $ref: "#/components/schemas/Direction"
+        doorStatus:
+          $ref: "#/components/schemas/DoorStatus"
+        stops:
+          type: array
+          items:
+            type: integer
+        updatedAt:
+          type: string
+          format: date-time
+    ElevatorAssignmentResponse:
+      type: object
+      required: [assignedElevator, estimatedArrivalTime, stopsUpdated, reason, stateVersion]
+      properties:
+        assignedElevator:
+          type: string
+        estimatedArrivalTime:
+          type: integer
+          description: Seconds until elevator reaches the requested floor
+        stopsUpdated:
+          type: array
+          items:
+            type: integer
+        reason:
+          type: string
+          enum: [SAME_DIRECTION_PASSING, NEAREST_IDLE, MINIMUM_ETA, INTERNAL_SELECTED]
+        stateVersion:
+          type: integer
+          format: int64

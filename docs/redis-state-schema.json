@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gera.local/schemas/elevator-system-state.json",
+  "title": "Gera Elevator System State",
+  "type": "object",
+  "required": ["totalFloors", "version", "updatedAt", "elevators"],
+  "properties": {
+    "totalFloors": {
+      "type": "integer",
+      "minimum": 2
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "elevators": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/elevator"
+      }
+    }
+  },
+  "$defs": {
+    "elevator": {
+      "type": "object",
+      "required": ["id", "currentFloor", "direction", "doorStatus", "stops", "updatedAt"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "currentFloor": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["UP", "DOWN", "IDLE"]
+        },
+        "doorStatus": {
+          "type": "string",
+          "enum": ["OPEN", "CLOSED", "OPENING", "CLOSING"]
+        },
+        "stops": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "uniqueItems": true
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:8080
+
+### Health
+GET {{baseUrl}}/actuator/health
+
+### Current elevator state
+GET {{baseUrl}}/api/v1/elevators
+
+### External request using the assignment payload
+POST {{baseUrl}}/api/v1/requests
+Content-Type: application/json
+
+{
+  "type": "EXTERNAL",
+  "floor": 4,
+  "direction": "UP"
+}
+
+### External request using the dedicated endpoint
+POST {{baseUrl}}/api/v1/requests/external
+Content-Type: application/json
+
+{
+  "floor": 10,
+  "direction": "DOWN"
+}
+
+### Internal request from elevator A
+POST {{baseUrl}}/api/v1/elevators/A/requests
+Content-Type: application/json
+
+{
+  "destinationFloor": 9
+}
+
+### Hardware/simulator telemetry update
+PUT {{baseUrl}}/api/v1/elevators/A/telemetry
+Content-Type: application/json
+
+{
+  "currentFloor": 2,
+  "direction": "UP",
+  "doorStatus": "CLOSED",
+  "stops": [6]
+}
+
+### Recent events
+GET {{baseUrl}}/api/v1/events?limit=20
+
+### Reset system
+POST {{baseUrl}}/api/v1/admin/reset
